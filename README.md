@@ -1,17 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
 ## Getting Started
 
 First, run the development server:
 
+
+## which foramt we save links
+
+Invalid URL Format Error: The error occurs because the validation removes query parameters from URLs, but Facebook group URLs rely on query parameters (?ref=share&mibextid=NSMWBT). so we should save as query parameters
+
+Drizzle DB Configuration Error: The issue in your db.ts file occurs because the drizzle function expects different arguments than what you're providing.
+
+
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
