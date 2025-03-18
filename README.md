@@ -1,6 +1,5 @@
 ## Getting Started
 
-First, run the development server:
 
 
 ## which foramt we save links
