@@ -67,7 +67,9 @@ export default function UrlForm() {
   };
 
   const filteredUrls = urls.filter((note) =>
-    note.title.toLowerCase().includes(search.toLowerCase())
+    note.title.toLowerCase().includes(search.toLowerCase()) ||
+    note.url.toLowerCase().includes(search.toLowerCase()) // Added URL filtering
+
   );
 
   return (
