@@ -1,26 +1,42 @@
 "use client";
+
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function ImportUrls() {
   const [data, setData] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleImport = async () => {
     setLoading(true);
-    try {
-      const response = await fetch('/api/import-urls', {
-        method: 'POST',
-        body: data
-      });
+    
+    const promise = new Promise<string>(async (resolve, reject) => {
+      try {
+        const response = await fetch('/api/import-urls', {
+          method: 'POST',
+          body: data,
+        });
 
-      const result = await response.json();
-      setMessage(result.message);
-    } catch (error) {
-      setMessage('Error importing URLs');
-    } finally {
-      setLoading(false);
-    }
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(text);
+        }
+
+        const result = JSON.parse(text);
+        resolve(String(result.message));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to import URLs';
+        reject(String(message));
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    toast.promise(promise, {
+      loading: 'Importing URLs...',
+      success: (message) => <div className="font-medium">{message}</div>,
+      error: (error) => <div className="text-red-500 font-medium">{error}</div>,
+    });
   };
 
   return (
@@ -39,7 +55,6 @@ export default function ImportUrls() {
       >
         {loading ? 'Importing...' : 'Import URLs'}
       </button>
-      {message && <p className="mt-4 text-gray-600">{message}</p>}
     </div>
   );
 }
