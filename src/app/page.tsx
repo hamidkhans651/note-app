@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button"
 import Logo from "@/components/Logo"
 import { Card, } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 
 
@@ -43,9 +50,7 @@ const HomePage: FC = () => {
         </div>
         <div className="flex items-center space-x-4">
           <Input placeholder="Search" className="w-64" />
-          <Button variant="outline" className="p-2">
-            {/* <SearchIcon className="w-5 h-5" /> */}
-          </Button>
+
         </div>
       </nav>
 
@@ -63,26 +68,33 @@ const HomePage: FC = () => {
       <div className="flex-1 p-6 mt-16">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Welcome to Your Notes</h1>
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="mt-4">Add Note</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Note</DialogTitle>
+              </DialogHeader>
+              <div className="p-4">
+                <Input
+                  className="mb-4"
+                  placeholder="Note Title"
+                  value={newNote.title}
+                  onChange={handleTitleChange}
+                />
+                <Textarea
+                  className="mb-4"
+                  placeholder="Take a note..."
+                  value={newNote.content}
+                  onChange={handleContentChange}
+                />
+                <Button onClick={addNote}>Save Note</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-
-        {/* New Note Form */}
-        <Card className="mb-6 p-4">
-          <Input
-            className="mb-4"
-            placeholder="Note Title"
-            value={newNote.title}
-            onChange={handleTitleChange}
-          />
-          <Textarea
-            className="mb-4"
-            placeholder="Take a note..."
-            value={newNote.content}
-            onChange={handleContentChange}
-          />
-          <Button onClick={addNote} className="flex items-center">
-            Add Note
-          </Button>
-        </Card>
 
         {/* Notes Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
