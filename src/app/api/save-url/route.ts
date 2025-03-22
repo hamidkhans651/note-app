@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/drizzle/db";
-import { groupUrls } from "@/drizzle/schema";
+import { groupUrls, urlToGroups, groups } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -21,7 +21,7 @@ const urlSchema = z.string().refine(isValidUrl, {
 
 export async function POST(req: Request) {
   try {
-    const { url, title, description } = await req.json();
+    const { url, title, description, groupName } = await req.json();
     urlSchema.parse(url); // Validate URL format
 
     // Check if the URL already exists in the database
@@ -35,11 +35,46 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "URL already exists" }, { status: 409 });
     }
 
-    // Save the URL along with the title and description, keeping the full URL format
-    await db.insert(groupUrls).values({ url, title, description });
+    // Start a transaction to handle group assignment
+    let groupId = null;
+    
+    if (groupName) {
+      // Check if the group exists
+      const existingGroup = await db
+        .select()
+        .from(groups)
+        .where(eq(groups.name, groupName));
+        
+      if (existingGroup.length > 0) {
+        groupId = existingGroup[0].id;
+      } else {
+        // Create the group if it doesn't exist
+        const newGroup = await db
+          .insert(groups)
+          .values({ name: groupName })
+          .returning();
+        groupId = newGroup[0].id;
+      }
+    }
 
-    return NextResponse.json({ message: "✅ URL saved successfully!" }, { status: 201 });
+    // Save the URL with group ID if provided
+    const savedUrl = await db
+      .insert(groupUrls)
+      .values({ 
+        url, 
+        title, 
+        description,
+        groupId 
+      })
+      .returning();
+
+    return NextResponse.json({ 
+      message: "✅ URL saved successfully!",
+      id: savedUrl[0].id,
+      groupId
+    }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: "Invalid URL format" }, { status: 400 });
+    console.error("Error saving URL:", error);
+    return NextResponse.json({ message: "Invalid URL format or server error" }, { status: 400 });
   }
 }
