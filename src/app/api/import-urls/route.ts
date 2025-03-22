@@ -7,17 +7,42 @@ export async function POST(req: Request) {
   try {
     const textData = await req.text();
 
-    // Extract all Facebook group URLs
-    const urlRegex = /https:\/\/www\.facebook\.com\/groups\/[^\s?]+/g;
-    const extractedUrls = textData.match(urlRegex) || [];
+    // Extract all potential Facebook group URLs and normalize them
+    const urlRegex = /https?:\/\/[^\s/?#]+\/groups\/[^\s?#]+/gi;
+    const potentialUrls = textData.match(urlRegex) || [];
 
-    // Remove duplicates and clean URLs
-    const uniqueUrls = Array.from(new Set(extractedUrls)).map((url) =>
-      url.split("?")[0]
-    ); // Remove query parameters
+    const validUrls = potentialUrls
+      .map((url) => {
+        try {
+          const parsedUrl = new URL(url);
+          // Normalize hostname to www.facebook.com
+          if (
+            parsedUrl.hostname.replace("www.", "") !== "facebook.com" ||
+            !parsedUrl.pathname.startsWith("/groups/")
+          ) {
+            return null;
+          }
+
+          // Extract group ID from path
+          const pathSegments = parsedUrl.pathname.split("/").filter(Boolean);
+          const groupId = pathSegments[1]; // path is /groups/<groupId>/...
+
+          if (!groupId) return null;
+
+          // Rebuild URL without query, hash, or trailing slash
+          const cleanUrl = `https://www.facebook.com/groups/${groupId}`;
+          return cleanUrl;
+        } catch (error) {
+          return null;
+        }
+      })
+      .filter((url): url is string => url !== null);
+
+    // Remove duplicates
+    const uniqueUrls = Array.from(new Set(validUrls));
 
     // Process each URL
-    let insertedCount = 0; // Track successfully inserted URLs
+    let insertedCount = 0;
     for (const url of uniqueUrls) {
       // Check if URL exists
       const existing = await db
@@ -26,23 +51,22 @@ export async function POST(req: Request) {
         .where(eq(groupUrls.url, url));
 
       if (existing.length === 0) {
-        // Extract group ID for title
-        const groupIdMatch = url.match(/groups\/(\d+|\w+)/);
-        const title = groupIdMatch ? `Group ${groupIdMatch[1]}` : "Facebook Group";
+        // Use group ID as title
+        const groupId = url.split("/groups/")[1];
+        const title = `Group ${groupId}`;
 
         await db.insert(groupUrls).values({
           url,
           title,
           description: "Community group imported from data",
         });
-        insertedCount++; // Increment count
+        insertedCount++;
       }
     }
 
-    // app/api/import-urls/route.ts
     return NextResponse.json(
       {
-        message: `✅ Successfully imported ${insertedCount} of ${uniqueUrls.length} URLs` as string
+        message: `✅ Successfully imported ${insertedCount} of ${uniqueUrls.length} URLs`,
       },
       { status: 200 }
     );
