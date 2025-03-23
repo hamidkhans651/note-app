@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import Logo from "@/components/Logo"
 import { Card, } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import { Menu, X } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,8 @@ const HomePage: FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const notesPerPage = 50;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   // Load saved groups
   useEffect(() => {
@@ -109,14 +112,22 @@ const HomePage: FC = () => {
   return (
     <div className="flex bg-[#202124] min-h-screen text-[#FFCC00]">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 bg-[#202124] h-16 flex items-center justify-between px-6 z-10">
-        <div className="flex items-center">
+      <nav className="fixed top-0 left-0 right-0 bg-[#202124] h-16 flex items-center justify-between px-4 md:px-6 z-50">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-[#FFCC00] md:hidden"
+            onClick={toggleSidebar}
+          >
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </Button>
           <Logo />
         </div>
         <div className="flex items-center space-x-4">
           <Input
             placeholder="Search notes..."
-            className="w-64"
+            className="w-48 md:w-64"
             value={searchTerm}
             onChange={handleSearchChange}
           />
@@ -124,8 +135,19 @@ const HomePage: FC = () => {
       </nav>
 
       {/* Sidebar */}
-      <div className="w-64 bg-[#202124] pr-3 pt-16 min-h-screen fixed left-0">
-        <div className="pl-2 pr-2 mt-4">
+      <div className={`
+        fixed md:relative
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        w-64 bg-[#202124] pr-3 pt-16 min-h-screen left-0 z-40
+        transition-transform duration-300 ease-in-out
+      `}>
+        {/* Mobile backdrop */}
+        <div
+          className={`fixed inset-0 bg-black/50 md:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}
+          onClick={toggleSidebar}
+        />
+
+        <div className="pl-2 pr-2 mt-4 relative z-10 bg-[#202124]">
           <Button className="w-full mb-4 bg-[#2f2f30]">Reminders</Button>
           <Button className="w-full mb-4 bg-[#2f2f30]">Edit Labels</Button>
           <Button className="w-full mb-4 bg-[#2f2f30]">Archive</Button>
@@ -134,10 +156,9 @@ const HomePage: FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 mt-16 ml-64">
+      <div className="flex-1 p-4 md:p-6 mt-16 ">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Welcome to Your Notes</h1>
-
+          <h1 className="text-2xl md:text-3xl font-bold">Welcome to Your Notes</h1>
 
           <div className="mt-6">
             <UrlForm />
@@ -170,7 +191,7 @@ const HomePage: FC = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-6">
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
