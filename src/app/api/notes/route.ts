@@ -18,7 +18,7 @@ export async function GET() {
         pinned: notes.pinned,
         groupId: notes.groupId,
         groupName: groups.name,
-        isUrl: notes.isUrl,z
+        isUrl: notes.isUrl,
       })
       .from(notes)
       .leftJoin(groups, eq(notes.groupId, groups.id));

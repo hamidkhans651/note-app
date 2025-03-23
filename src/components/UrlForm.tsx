@@ -154,7 +154,7 @@ export default function UrlForm() {
       if (response.ok) {
         const result = await response.json();
         const updatedUrls = urls.map((note) =>
-          note.id === id ? { ...note, pinned: result.pinned ? new Date() : null } : note
+          note.id === id ? { ...note, pinned: result.pinned ? new Date().toISOString() : null } : note
         );
         setUrls(updatedUrls);
         toast.success(result.message);
