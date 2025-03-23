@@ -122,7 +122,11 @@ const HomePage: FC = () => {
           >
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </Button>
-          <Logo />
+
+          <div className="hidden md:block">
+            <Logo />
+
+          </div>
         </div>
         <div className="flex items-center space-x-4">
           <Input
@@ -143,11 +147,11 @@ const HomePage: FC = () => {
       `}>
         {/* Mobile backdrop */}
         <div
-          className={`fixed inset-0 bg-black/50 md:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}
+          className={`fixed inset-0 bg-[#202124]/50 md:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}
           onClick={toggleSidebar}
         />
 
-        <div className="pl-2 pr-2 mt-4 relative z-10 bg-[#202124]">
+        <div className="pl-2 pr-2 mt-4 relative z-10 ">
           <Button className="w-full mb-4 bg-[#2f2f30]">Reminders</Button>
           <Button className="w-full mb-4 bg-[#2f2f30]">Edit Labels</Button>
           <Button className="w-full mb-4 bg-[#2f2f30]">Archive</Button>

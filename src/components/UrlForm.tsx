@@ -19,11 +19,11 @@ export default function UrlForm() {
   const [description, setDescription] = useState("");
   const [groupName, setGroupName] = useState("");
   const [message, setMessage] = useState("");
-  const [urls, setUrls] = useState<{ 
-    id: string; 
-    url: string; 
-    title: string; 
-    description: string; 
+  const [urls, setUrls] = useState<{
+    id: string;
+    url: string;
+    title: string;
+    description: string;
     pinned: string | null;
     groupId: string | null;
     groupName: string | null;
@@ -43,14 +43,14 @@ export default function UrlForm() {
       const data = await res.json();
       setUrls(data);
     };
-    
+
     const fetchGroups = async () => {
       const res = await fetch("/api/groups");
       const data = await res.json();
       setGroups(data);
       setFilteredGroups(data);
     };
-    
+
     fetchUrls();
     fetchGroups();
   }, []);
@@ -58,7 +58,7 @@ export default function UrlForm() {
   // Filter groups based on search
   useEffect(() => {
     if (searchGroup) {
-      setFilteredGroups(groups.filter(group => 
+      setFilteredGroups(groups.filter(group =>
         group.name.toLowerCase().includes(searchGroup.toLowerCase())
       ));
     } else {
@@ -90,26 +90,26 @@ export default function UrlForm() {
       });
 
       const result = await response.json();
-      
+
       if (response.ok) {
         toast.success("URL saved successfully!");
-        
+
         // Add the new URL to the state
-        setUrls((prev) => [...prev, { 
-          id: result.id, 
-          url, 
-          title, 
-          description, 
+        setUrls((prev) => [...prev, {
+          id: result.id,
+          url,
+          title,
+          description,
           pinned: null,
           groupId: result.groupId,
           groupName: groupName || null
         }]);
-        
+
         // If a new group was created, add it to the groups state
         if (groupName && !groups.some(g => g.name === groupName)) {
           setGroups(prev => [...prev, { id: result.groupId, name: groupName }]);
         }
-        
+
         // Clear form fields after successful submission
         setUrl("");
         setTitle("");
@@ -175,7 +175,7 @@ export default function UrlForm() {
       });
 
       const result = await response.json();
-      
+
       if (response.ok) {
         // Update the URL in state with the new group
         const updatedUrls = urls.map((note) =>
@@ -193,13 +193,13 @@ export default function UrlForm() {
 
   // Filter URLs based on search and selected group
   const filteredUrls = urls.filter((note) => {
-    const matchesSearch = 
+    const matchesSearch =
       note.title.toLowerCase().includes(search.toLowerCase()) ||
       note.url.toLowerCase().includes(search.toLowerCase()) ||
       (note.description && note.description.toLowerCase().includes(search.toLowerCase()));
-    
+
     const matchesGroup = selectedGroup ? note.groupId === selectedGroup : true;
-    
+
     return matchesSearch && matchesGroup;
   });
 
@@ -226,9 +226,9 @@ export default function UrlForm() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        
+
         <div className="flex space-x-2">
-          <select 
+          <select
             className="border p-2 rounded bg-[#303134] text-white"
             value={selectedGroup || ""}
             onChange={(e) => setSelectedGroup(e.target.value || null)}
@@ -240,17 +240,18 @@ export default function UrlForm() {
               </option>
             ))}
           </select>
-          
-          <Button 
+
+          <Button
             onClick={() => setSelectedGroup(null)}
             variant="outline"
             className="p-2"
+            text-black
           >
             Reset
           </Button>
         </div>
       </div>
-      
+
       {/* Dialog for adding new URL */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
@@ -304,8 +305,8 @@ export default function UrlForm() {
                 ))}
               </datalist>
             </div>
-            <Button 
-              onClick={() => handleSubmit()} 
+            <Button
+              onClick={() => handleSubmit()}
               className="bg-[#FFCC00] text-black hover:bg-[#E6B800]"
             >
               Save URL
@@ -323,28 +324,28 @@ export default function UrlForm() {
               <div className="text-sm text-gray-400 mb-2">Group: {note.groupName}</div>
             )}
             <p className="text-gray-300 mb-2">{note.description}</p>
-            <a 
-              href={note.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href={note.url}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-400 hover:underline block mb-2 truncate"
             >
               {note.url}
             </a>
             <div className="mt-4 flex justify-between">
               <div className="flex space-x-2">
-                <Button 
-                  onClick={() => handlePin(note.id)} 
-                  variant="ghost" 
+                <Button
+                  onClick={() => handlePin(note.id)}
+                  variant="ghost"
                   className="text-sm text-blue-400 hover:bg-[#404144]"
                 >
                   {note.pinned ? "Pinned ★" : "Pin"}
                 </Button>
-                
+
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       className="text-sm text-green-400 hover:bg-[#404144]"
                     >
                       Group
@@ -369,7 +370,7 @@ export default function UrlForm() {
                           ))}
                         </datalist>
                       </div>
-                      <Button 
+                      <Button
                         onClick={() => {
                           if (searchGroup) {
                             handleAssignGroup(note.id, searchGroup);
@@ -384,9 +385,9 @@ export default function UrlForm() {
                   </DialogContent>
                 </Dialog>
               </div>
-              
-              <Button 
-                onClick={() => handleDelete(note.id)} 
+
+              <Button
+                onClick={() => handleDelete(note.id)}
                 variant="ghost"
                 className="text-sm text-red-400 hover:bg-[#404144]"
               >
@@ -401,7 +402,7 @@ export default function UrlForm() {
       {currentItems.length === 0 && (
         <div className="text-center py-10">
           <p className="text-gray-400 mb-4">No URLs found. Add your first URL!</p>
-          <Button 
+          <Button
             onClick={() => setDialogOpen(true)}
             className="bg-[#FFCC00] text-black hover:bg-[#E6B800]"
           >
@@ -414,14 +415,14 @@ export default function UrlForm() {
       {totalPages > 1 && (
         <div className="flex justify-center mt-6">
           <div className="flex space-x-2">
-            <Button 
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+            <Button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               className="bg-[#2f2f30]"
             >
               Previous
             </Button>
-            
+
             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
               // Show pages around current page
               let pageNum;
@@ -434,7 +435,7 @@ export default function UrlForm() {
               } else {
                 pageNum = currentPage - 2 + i;
               }
-              
+
               return (
                 <Button
                   key={pageNum}
@@ -445,9 +446,9 @@ export default function UrlForm() {
                 </Button>
               );
             })}
-            
-            <Button 
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+
+            <Button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
               className="bg-[#2f2f30]"
             >
