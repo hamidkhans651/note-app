@@ -23,6 +23,20 @@ export const trash = pgTable("trash", {
   isUrl: boolean("is_url").default(false),
 });
 
+// Archived notes table
+export const archivedNotes = pgTable("archived_notes", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  noteId: text("note_id").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  url: text("url"),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  archivedAt: timestamp("archived_at").defaultNow(),
+  groupId: text("group_id").references(() => groups.id, { onDelete: 'set null' }),
+  isUrl: boolean("is_url").default(false),
+});
+
 // Unified notes table that can store both regular notes and URLs
 export const notes = pgTable("notes", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -36,6 +50,7 @@ export const notes = pgTable("notes", {
   groupId: text("group_id").references(() => groups.id, { onDelete: 'set null' }),
   isUrl: boolean("is_url").default(false),
   isDeleted: boolean("is_deleted").default(false),
+  isArchived: boolean("is_archived").default(false),
 });
 
 // URLs table with group relationship
@@ -48,6 +63,7 @@ export const groupUrls = pgTable("group_urls", {
   pinned: timestamp("pinned"),
   groupId: text("group_id").references(() => groups.id, { onDelete: 'set null' }),
   isDeleted: boolean("is_deleted").default(false),
+  isArchived: boolean("is_archived").default(false),
 });
 
 // Many-to-many relationship table (for URLs that belong to multiple groups)

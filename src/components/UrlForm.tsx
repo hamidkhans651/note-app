@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
+import { Menu, X, Archive, Trash, Copy, Share2 } from "lucide-react"
 
 export default function UrlForm() {
   const [url, setUrl] = useState("");
@@ -36,6 +37,7 @@ export default function UrlForm() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const itemsPerPage = 50;
+  const [selectedNote, setSelectedNote] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUrls = async () => {
@@ -217,6 +219,52 @@ export default function UrlForm() {
   const currentItems = sortedUrls.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(sortedUrls.length / itemsPerPage);
 
+  const handleArchive = async (id: string) => {
+    try {
+      const response = await fetch('/api/notes/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type: 'url' }),
+      });
+
+      if (response.ok) {
+        setUrls(prev => prev.filter(note => note.id !== id));
+        toast.success("URL archived successfully");
+      } else {
+        toast.error("Failed to archive URL");
+      }
+    } catch (error) {
+      toast.error("Failed to archive URL");
+    }
+  };
+
+  const handleCopy = async (note: any) => {
+    const textToCopy = `${note.title}\n\n${note.description}\n${note.url}`;
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      toast.success("URL copied to clipboard");
+    } catch (error) {
+      toast.error("Failed to copy URL");
+    }
+  };
+
+  const handleShare = async (note: any) => {
+    const textToShare = `${note.title}\n\n${note.description}\n${note.url}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: note.title,
+          text: textToShare,
+        });
+      } else {
+        await navigator.clipboard.writeText(textToShare);
+        toast.success("URL copied to clipboard");
+      }
+    } catch (error) {
+      toast.error("Failed to share URL");
+    }
+  };
+
   return (
     <div className="max-w-full mx-auto">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
@@ -318,7 +366,13 @@ export default function UrlForm() {
       <h2 className="mt-6 text-xl font-semibold">Saved URLs:</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
         {currentItems.map((note) => (
-          <Card key={note.id} className="p-4 bg-[#303134] border-gray-700 shadow-md">
+          <Card 
+            key={note.id} 
+            className={`p-4 bg-[#303134] border-gray-700 shadow-md cursor-pointer transition-all ${
+              selectedNote === note.id ? 'ring-2 ring-[#FFCC00]' : ''
+            }`}
+            onClick={() => setSelectedNote(note.id === selectedNote ? null : note.id)}
+          >
             <h3 className="font-semibold text-lg text-[#FFCC00]">{note.title}</h3>
             {note.groupName && (
               <div className="text-sm text-gray-400 mb-2">Group: {note.groupName}</div>
@@ -332,70 +386,100 @@ export default function UrlForm() {
             >
               {note.url}
             </a>
-            <div className="mt-4 flex justify-between">
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => handlePin(note.id)}
-                  variant="ghost"
-                  className="text-sm text-blue-400 hover:bg-[#404144]"
-                >
-                  {note.pinned ? "Pinned ★" : "Pin"}
-                </Button>
-
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="text-sm text-green-400 hover:bg-[#404144]"
-                    >
-                      Group
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-[#303134] text-white">
-                    <DialogHeader>
-                      <DialogTitle>Assign to Group</DialogTitle>
-                    </DialogHeader>
-                    <div className="p-4">
-                      <div className="mb-4">
-                        <Input
-                          className="mb-2 bg-[#202124]"
-                          placeholder="Group Name"
-                          value={searchGroup}
-                          onChange={(e) => setSearchGroup(e.target.value)}
-                          list="assign-groups-list"
-                        />
-                        <datalist id="assign-groups-list">
-                          {filteredGroups.map((group) => (
-                            <option key={group.id} value={group.name} />
-                          ))}
-                        </datalist>
-                      </div>
-                      <Button
-                        onClick={() => {
-                          if (searchGroup) {
-                            handleAssignGroup(note.id, searchGroup);
-                            setSearchGroup('');
-                          }
-                        }}
-                        className="bg-[#FFCC00] text-black hover:bg-[#E6B800]"
-                      >
-                        Assign Group
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
+            
+            {/* Desktop Action Buttons */}
+            <div className="hidden md:flex justify-end gap-2 mt-4">
               <Button
-                onClick={() => handleDelete(note.id)}
                 variant="ghost"
-                className="text-sm text-red-400 hover:bg-[#404144]"
+                size="sm"
+                className="text-blue-400 hover:bg-[#404144]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopy(note);
+                }}
               >
+                <Copy size={16} className="mr-1" />
+                Copy
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-green-400 hover:bg-[#404144]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShare(note);
+                }}
+              >
+                <Share2 size={16} className="mr-1" />
+                Share
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-yellow-400 hover:bg-[#404144]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleArchive(note.id);
+                }}
+              >
+                <Archive size={16} className="mr-1" />
+                Archive
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-400 hover:bg-[#404144]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(note.id);
+                }}
+              >
+                <Trash size={16} className="mr-1" />
                 Delete
               </Button>
             </div>
           </Card>
         ))}
+      </div>
+
+      {/* Mobile Action Buttons */}
+      <div className="fixed bottom-4 left-0 right-0 flex justify-center gap-2 md:hidden">
+        {selectedNote && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#FFCC00] bg-[#303134]"
+              onClick={() => handleCopy(currentItems.find(n => n.id === selectedNote)!)}
+            >
+              <Copy size={20} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#FFCC00] bg-[#303134]"
+              onClick={() => handleShare(currentItems.find(n => n.id === selectedNote)!)}
+            >
+              <Share2 size={20} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#FFCC00] bg-[#303134]"
+              onClick={() => handleArchive(selectedNote)}
+            >
+              <Archive size={20} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#FFCC00] bg-[#303134]"
+              onClick={() => handleDelete(selectedNote)}
+            >
+              <Trash size={20} />
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Empty state */}
