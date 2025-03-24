@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import { Menu, X, Archive, Trash, Copy, Share2 } from "lucide-react"
+import { Menu, X, Archive, Trash, Copy, Share2, LayoutList, LayoutGrid } from "lucide-react"
 
 export default function UrlForm() {
   const [url, setUrl] = useState("");
@@ -38,6 +38,7 @@ export default function UrlForm() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const itemsPerPage = 50;
   const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
+  const [isSingleColumn, setIsSingleColumn] = useState(true);
 
   useEffect(() => {
     const fetchUrls = async () => {
@@ -337,7 +338,16 @@ export default function UrlForm() {
             className="bg-[#FFCC00] text-black hover:bg-[#E6B800]"
           >
             Reset
-          </Button> 
+          </Button>
+
+          <Button
+            onClick={() => setIsSingleColumn(!isSingleColumn)}
+            variant="outline"
+            className="bg-[#2f2f30] text-[#FFCC00] hover:bg-[#404144]"
+            size="icon"
+          >
+            {isSingleColumn ? <LayoutGrid size={20} /> : <LayoutList size={20} />}
+          </Button>
         </div>
       </div>
 
@@ -421,7 +431,11 @@ export default function UrlForm() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+      <div className={`grid gap-4 ${
+        isSingleColumn 
+          ? 'grid-cols-1' 
+          : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+      }`}>
         {currentItems.map((note) => (
           <Card 
             key={note.id} 
