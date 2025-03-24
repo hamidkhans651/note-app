@@ -284,14 +284,22 @@ export default function UrlForm() {
       const response = await fetch('/api/notes/archive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: selectedIds, type: 'url' }),
+        body: JSON.stringify({ 
+          ids: selectedIds,
+          type: 'url',
+          isBulk: true 
+        }),
       });
 
       if (response.ok) {
+        // Remove archived URLs from the state
         setUrls(prev => prev.filter(note => !selectedNotes.has(note.id)));
-        toast.success("Selected URLs archived successfully");
+        // Clear the selection
+        setSelectedNotes(new Set());
+        toast.success(`Successfully archived ${selectedIds.length} URLs`);
       } else {
-        toast.error("Failed to archive selected URLs");
+        const error = await response.json();
+        toast.error(error.message || "Failed to archive selected URLs");
       }
     } catch (error) {
       toast.error("Failed to archive selected URLs");

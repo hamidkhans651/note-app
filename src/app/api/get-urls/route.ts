@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/drizzle/db";
 import { groupUrls, groups } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -18,7 +18,11 @@ export async function GET() {
         groupName: groups.name,
       })
       .from(groupUrls)
-      .leftJoin(groups, eq(groupUrls.groupId, groups.id));
+      .leftJoin(groups, eq(groupUrls.groupId, groups.id))
+      .where(and(
+        eq(groupUrls.isArchived, false),
+        eq(groupUrls.isDeleted, false)
+      ));
       
     return NextResponse.json(urls, { status: 200 });
   } catch (error) {
