@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import { Menu, X, Archive, Trash, Copy, Share2, LayoutList, LayoutGrid } from "lucide-react"
+import { Menu, X, Archive, Trash, Copy, Share2, LayoutList, LayoutGrid, Plus } from "lucide-react"
 
 export default function UrlForm() {
   const [url, setUrl] = useState("");
@@ -354,10 +354,13 @@ export default function UrlForm() {
       {/* Dialog for adding new URL */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-6 bg-[#FFCC00] text-black hover:bg-[#E6B800]">Add New URL</Button>
+          <Button className="mb-6 bg-[#FFCC00] text-black hover:bg-[#E6B800] md:w-auto w-12 h-12 p-0 fixed bottom-6 right-6 z-50 md:static">
+            <span className="md:inline hidden">Add New URL</span>
+            <Plus className="md:hidden inline" size={24} />
+          </Button>
         </DialogTrigger>
-        <DialogContent className="bg-[#303134] text-white">
-          <DialogHeader className="flex flex-row justify-between items-center">
+        <DialogContent className="bg-[#303134] text-white md:max-w-2xl md:h-auto h-[100dvh] w-[100dvw] max-w-none rounded-none md:rounded-lg p-0 md:p-6">
+          <DialogHeader className="flex flex-row justify-between items-center p-4 border-b border-gray-700">
             <DialogTitle>Add New URL</DialogTitle>
             <div className="flex items-center">
               <Input
@@ -368,7 +371,7 @@ export default function UrlForm() {
               />
             </div>
           </DialogHeader>
-          <div className="p-4">
+          <div className="p-4 h-full overflow-y-auto">
             <Input
               className="mb-4 bg-[#202124]"
               placeholder="Title"
@@ -406,7 +409,7 @@ export default function UrlForm() {
             </div>
             <Button
               onClick={() => handleSubmit()}
-              className="bg-[#FFCC00] text-black hover:bg-[#E6B800]"
+              className="bg-[#FFCC00] text-black hover:bg-[#E6B800] w-full"
             >
               Save URL
             </Button>
