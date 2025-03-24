@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import UrlForm from "@/components/UrlForm";
+import { useRouter } from 'next/navigation';
 
 interface Note {
   title: string;
@@ -25,6 +26,7 @@ interface Note {
 }
 
 const HomePage: FC = () => {
+  const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNote, setNewNote] = useState<Note>({ title: '', content: '', group: '', url: '', description: '' });
   const [groups, setGroups] = useState<string[]>([]);
@@ -146,11 +148,37 @@ const HomePage: FC = () => {
           onClick={toggleSidebar}
         />
 
-        <div className="pl-2 pr-2 mt-4 relative z-10 ">
-          <Button className="w-full mb-4 bg-[#2f2f30]">Reminders</Button>
-          <Button className="w-full mb-4 bg-[#2f2f30]">Edit Labels</Button>
-          <Button className="w-full mb-4 bg-[#2f2f30]">Archive</Button>
-          <Button className="w-full bg-[#2f2f30]">Trash</Button>
+        <div className="pl-2 pr-2 mt-4 relative z-10">
+          <Button 
+            className="w-full mb-4 bg-[#FFCC00] text-black"
+            onClick={() => router.push('/')}
+          >
+            Notes
+          </Button>
+          <Button 
+            className="w-full mb-4 bg-[#2f2f30]"
+            onClick={() => router.push('/import')}
+          >
+            Import Links
+          </Button>
+          <Button 
+            className="w-full mb-4 bg-[#2f2f30]"
+            onClick={() => router.push('/labels')}
+          >
+            Edit Labels
+          </Button>
+          <Button 
+            className="w-full mb-4 bg-[#2f2f30]"
+            onClick={() => router.push('/archive')}
+          >
+            Archive
+          </Button>
+          <Button 
+            className="w-full bg-[#2f2f30]"
+            onClick={() => router.push('/trash')}
+          >
+            Trash
+          </Button>
         </div>
       </div>
 

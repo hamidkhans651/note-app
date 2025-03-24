@@ -9,6 +9,20 @@ export const groups = pgTable("groups", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Trash table to store deleted notes
+export const trash = pgTable("trash", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  noteId: text("note_id").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  url: text("url"),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at").defaultNow(),
+  groupId: text("group_id").references(() => groups.id, { onDelete: 'set null' }),
+  isUrl: boolean("is_url").default(false),
+});
+
 // Unified notes table that can store both regular notes and URLs
 export const notes = pgTable("notes", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -21,6 +35,7 @@ export const notes = pgTable("notes", {
   pinned: timestamp("pinned"),
   groupId: text("group_id").references(() => groups.id, { onDelete: 'set null' }),
   isUrl: boolean("is_url").default(false),
+  isDeleted: boolean("is_deleted").default(false),
 });
 
 // URLs table with group relationship
@@ -30,8 +45,9 @@ export const groupUrls = pgTable("group_urls", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-  pinned: timestamp("pinned"), // By default, this is nullable
+  pinned: timestamp("pinned"),
   groupId: text("group_id").references(() => groups.id, { onDelete: 'set null' }),
+  isDeleted: boolean("is_deleted").default(false),
 });
 
 // Many-to-many relationship table (for URLs that belong to multiple groups)

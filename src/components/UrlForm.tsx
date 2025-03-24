@@ -126,20 +126,21 @@ export default function UrlForm() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch("/api/notes/delete", {
-        method: "DELETE",
+      const response = await fetch("/api/notes/move-to-trash", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, type: 'url' }),
       });
 
       if (response.ok) {
         setUrls((prev) => prev.filter((note) => note.id !== id));
-        toast.success("Note deleted successfully");
+        toast.success("URL moved to trash successfully");
       } else {
-        toast.error("Error deleting note");
+        const error = await response.json();
+        toast.error(error.message || "Error moving URL to trash");
       }
     } catch (error) {
-      toast.error("Failed to delete note");
+      toast.error("Failed to move URL to trash");
     }
   };
 
