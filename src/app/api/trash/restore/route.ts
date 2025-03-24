@@ -8,43 +8,52 @@ export async function POST(req: Request) {
     const { id } = await req.json();
     
     if (!id) {
-      return NextResponse.json({ message: "ID is required" }, { status: 400 });
+      return NextResponse.json({ message: "Item ID is required" }, { status: 400 });
     }
-
+    
     // Get the trash item
     const trashItem = await db
       .select()
       .from(trash)
       .where(eq(trash.id, id));
-
+      
     if (trashItem.length === 0) {
-      return NextResponse.json({ message: "Trash item not found" }, { status: 404 });
+      return NextResponse.json({ message: "Item not found in trash" }, { status: 404 });
     }
-
+    
     const item = trashItem[0];
-
+    
+    // Restore to appropriate table based on type
     if (item.isUrl) {
-      // Restore URL
       await db
-        .update(groupUrls)
-        .set({ isDeleted: false })
-        .where(eq(groupUrls.id, item.noteId));
+        .insert(groupUrls)
+        .values({
+          url: item.url!,
+          title: item.title,
+          description: item.description || "",
+          groupId: item.groupId,
+        });
     } else {
-      // Restore note
       await db
-        .update(notes)
-        .set({ isDeleted: false })
-        .where(eq(notes.id, item.noteId));
+        .insert(notes)
+        .values({
+          title: item.title,
+          content: item.content,
+          url: item.url,
+          description: item.description,
+          groupId: item.groupId,
+          isUrl: false,
+        });
     }
-
-    // Remove from trash
+    
+    // Delete from trash
     await db
       .delete(trash)
       .where(eq(trash.id, id));
-
-    return NextResponse.json({ message: "Restored successfully" }, { status: 200 });
+      
+    return NextResponse.json({ message: "Item restored successfully" }, { status: 200 });
   } catch (error) {
-    console.error("Error restoring from trash:", error);
-    return NextResponse.json({ message: "Failed to restore from trash" }, { status: 500 });
+    console.error("Error restoring item:", error);
+    return NextResponse.json({ message: "Failed to restore item" }, { status: 500 });
   }
 } 
