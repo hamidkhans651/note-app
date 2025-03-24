@@ -244,11 +244,10 @@ export default function UrlForm() {
           <Button
             onClick={() => setSelectedGroup(null)}
             variant="outline"
-            className="p-2"
-            text-black
+            className="bg-[#FFCC00] text-black hover:bg-[#E6B800]"
           >
             Reset
-          </Button>
+          </Button> 
         </div>
       </div>
 

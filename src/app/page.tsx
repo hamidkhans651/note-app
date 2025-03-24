@@ -129,12 +129,7 @@ const HomePage: FC = () => {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <Input
-            placeholder="Search notes..."
-            className="w-48 md:w-64"
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
+
         </div>
       </nav>
 
