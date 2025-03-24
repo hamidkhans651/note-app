@@ -37,7 +37,7 @@ export default function UrlForm() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const itemsPerPage = 50;
-  const [selectedNote, setSelectedNote] = useState<string | null>(null);
+  const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchUrls = async () => {
@@ -265,6 +265,39 @@ export default function UrlForm() {
     }
   };
 
+  const handleCardClick = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedNotes(prev => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(id)) {
+        newSelection.delete(id);
+      } else {
+        newSelection.add(id);
+      }
+      return newSelection;
+    });
+  };
+
+  const handleBulkArchive = async () => {
+    try {
+      const selectedIds = Array.from(selectedNotes);
+      const response = await fetch('/api/notes/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, type: 'url' }),
+      });
+
+      if (response.ok) {
+        setUrls(prev => prev.filter(note => !selectedNotes.has(note.id)));
+        toast.success("Selected URLs archived successfully");
+      } else {
+        toast.error("Failed to archive selected URLs");
+      }
+    } catch (error) {
+      toast.error("Failed to archive selected URLs");
+    }
+  };
+
   return (
     <div className="max-w-full mx-auto">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4">
@@ -363,21 +396,37 @@ export default function UrlForm() {
         </DialogContent>
       </Dialog>
 
-      <h2 className="mt-6 text-xl font-semibold">Saved URLs:</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Saved URLs:</h2>
+        {selectedNotes.size > 0 && (
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-yellow-400 hover:bg-[#404144]"
+              onClick={handleBulkArchive}
+            >
+              <Archive size={16} className="mr-1" />
+              Archive Selected ({selectedNotes.size})
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {currentItems.map((note) => (
           <Card 
             key={note.id} 
             className={`p-4 bg-[#303134] border-gray-700 shadow-md cursor-pointer transition-all ${
-              selectedNote === note.id ? 'ring-2 ring-[#FFCC00]' : ''
+              selectedNotes.has(note.id) ? 'ring-2 ring-[#FFCC00]' : ''
             }`}
-            onClick={() => setSelectedNote(note.id === selectedNote ? null : note.id)}
+            onClick={(e) => handleCardClick(note.id, e)}
           >
-            <h3 className="font-semibold text-lg text-[#FFCC00]">{note.title}</h3>
+            <h3 className="font-semibold text-lg text-[#FFCC00] truncate">{note.title}</h3>
             {note.groupName && (
-              <div className="text-sm text-gray-400 mb-2">Group: {note.groupName}</div>
+              <div className="text-sm text-gray-400 mb-2 truncate">Group: {note.groupName}</div>
             )}
-            <p className="text-gray-300 mb-2">{note.description}</p>
+            <p className="text-gray-300 mb-2 line-clamp-2">{note.description}</p>
             <a
               href={note.url}
               target="_blank"
@@ -388,7 +437,7 @@ export default function UrlForm() {
             </a>
             
             {/* Desktop Action Buttons */}
-            <div className="hidden md:flex justify-end gap-2 mt-4">
+            <div className="hidden md:flex flex-wrap justify-end gap-2 mt-4">
               <Button
                 variant="ghost"
                 size="sm"
@@ -444,13 +493,16 @@ export default function UrlForm() {
 
       {/* Mobile Action Buttons */}
       <div className="fixed bottom-4 left-0 right-0 flex justify-center gap-2 md:hidden">
-        {selectedNote && (
+        {selectedNotes.size > 0 && (
           <>
             <Button
               variant="ghost"
               size="icon"
               className="text-[#FFCC00] bg-[#303134]"
-              onClick={() => handleCopy(currentItems.find(n => n.id === selectedNote)!)}
+              onClick={() => {
+                const selectedNote = currentItems.find(n => selectedNotes.has(n.id));
+                if (selectedNote) handleCopy(selectedNote);
+              }}
             >
               <Copy size={20} />
             </Button>
@@ -458,7 +510,10 @@ export default function UrlForm() {
               variant="ghost"
               size="icon"
               className="text-[#FFCC00] bg-[#303134]"
-              onClick={() => handleShare(currentItems.find(n => n.id === selectedNote)!)}
+              onClick={() => {
+                const selectedNote = currentItems.find(n => selectedNotes.has(n.id));
+                if (selectedNote) handleShare(selectedNote);
+              }}
             >
               <Share2 size={20} />
             </Button>
@@ -466,7 +521,7 @@ export default function UrlForm() {
               variant="ghost"
               size="icon"
               className="text-[#FFCC00] bg-[#303134]"
-              onClick={() => handleArchive(selectedNote)}
+              onClick={handleBulkArchive}
             >
               <Archive size={20} />
             </Button>
@@ -474,7 +529,9 @@ export default function UrlForm() {
               variant="ghost"
               size="icon"
               className="text-[#FFCC00] bg-[#303134]"
-              onClick={() => handleDelete(selectedNote)}
+              onClick={() => {
+                Array.from(selectedNotes).forEach(id => handleDelete(id));
+              }}
             >
               <Trash size={20} />
             </Button>
