@@ -1,19 +1,15 @@
 'use client'
 
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
 import { Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
-import UrlForm from "@/components/UrlForm";
 import { useRouter } from 'next/navigation';
+import ImportUrls from "@/components/ImportUrls";
 
 export default function ImportPage() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
     <div className="flex bg-[#202124] min-h-screen text-[#FFCC00]">
@@ -24,7 +20,7 @@ export default function ImportPage() {
             variant="ghost"
             size="icon"
             className="text-[#FFCC00] md:hidden"
-            onClick={toggleSidebar}
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           >
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </Button>
@@ -45,7 +41,7 @@ export default function ImportPage() {
         {/* Mobile backdrop */}
         <div
           className={`fixed inset-0 bg-[#202124]/50 md:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}
-          onClick={toggleSidebar}
+          onClick={() => setIsSidebarOpen(false)}
         />
 
         <div className="pl-2 pr-2 mt-4 relative z-10">
@@ -85,10 +81,8 @@ export default function ImportPage() {
       {/* Main Content */}
       <div className="flex-1 p-4 md:p-6 mt-16">
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Import Links</h1>
-          <div className="mt-6">
-            <UrlForm />
-          </div>
+          <h1 className="text-2xl md:text-3xl font-bold mb-4">Import URLs</h1>
+          <ImportUrls />
         </div>
       </div>
     </div>
