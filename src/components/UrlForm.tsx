@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import { Menu, X, Archive, Trash, Copy, Share2, LayoutList, LayoutGrid, Plus, Edit2 } from "lucide-react"
+import { Menu, X, Archive, Trash, Copy, Share2,StickyNote, LayoutList, LayoutGrid, Plus, Edit2 } from "lucide-react"
 
 export default function UrlForm() {
   const [url, setUrl] = useState("");
@@ -76,6 +76,23 @@ export default function UrlForm() {
       setFilteredGroups(groups);
     }
   }, [searchGroup, groups]);
+
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Only handle click outside on desktop screens
+      if (window.innerWidth >= 768) {
+        const target = event.target as HTMLElement;
+        // Check if the click is outside of any card
+        if (!target.closest('.note-card')) {
+          setSelectedNotes(new Set());
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -334,8 +351,8 @@ export default function UrlForm() {
 
       if (response.ok) {
         // Update the URL in state
-        setUrls(prev => prev.map(note => 
-          note.id === editingNote.id 
+        setUrls(prev => prev.map(note =>
+          note.id === editingNote.id
             ? { ...note, title: editingNote.title, url: editingNote.url, description: editingNote.description, groupName: editingNote.groupName }
             : note
         ));
@@ -398,7 +415,7 @@ export default function UrlForm() {
       {/* Dialog for adding new URL */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-2 bg-[#FFCC00] text-black hover:bg-[#E6B800] md:w-auto w-8 h-8 p-0 fixed bottom-6 right-6 z-50 md:static">
+          <Button className="mb-6 bg-[#FFCC00] text-black hover:bg-[#E6B800] md:w-auto w-12 h-12 p-0 fixed bottom-6 right-6 z-50 md:static">
             <span className="md:inline hidden">Add New URL</span>
             <Plus className="md:hidden inline" size={24} />
           </Button>
@@ -471,21 +488,21 @@ export default function UrlForm() {
               className="text-yellow-400 hover:bg-[#404144]"
               onClick={handleBulkArchive}
             >
-              <Archive size={16} className="mr-1" />
-              Archive Selected ({selectedNotes.size})
+              <StickyNote  size={16} className="mr-1" />
+              Selected ({selectedNotes.size})
             </Button>
           </div>
         )}
       </div>
 
       <div className={`grid gap-4 ${isSingleColumn
-          ? 'grid-cols-1'
-          : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+        ? 'grid-cols-1'
+        : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
         }`}>
         {currentItems.map((note) => (
           <Card
             key={note.id}
-            className={`p-4 bg-[#303134] border-gray-700 shadow-md cursor-pointer transition-all ${selectedNotes.has(note.id) ? 'ring-2 ring-[#FFCC00]' : ''
+            className={`p-4 bg-[#303134] border-gray-700 cursor-pointer transition-all note-card ${selectedNotes.has(note.id) ? 'ring-2 ring-[#FFCC00]' : ''
               }`}
             onClick={(e) => handleCardClick(note.id, e)}
           >
@@ -581,6 +598,14 @@ export default function UrlForm() {
       <div className="fixed bottom-4 left-0 right-0 flex justify-center gap-2 md:hidden">
         {selectedNotes.size > 0 && (
           <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#FFCC00] bg-[#303134]"
+              onClick={() => setSelectedNotes(new Set())}
+            >
+              <X size={20} />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
