@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import { Menu, X, Archive, Trash, Copy, Share2, LayoutList, LayoutGrid, Plus } from "lucide-react"
+import { Menu, X, Archive, Trash, Copy, Share2, LayoutList, LayoutGrid, Plus, Edit2 } from "lucide-react"
 
 export default function UrlForm() {
   const [url, setUrl] = useState("");
@@ -39,6 +39,14 @@ export default function UrlForm() {
   const itemsPerPage = 50;
   const [selectedNotes, setSelectedNotes] = useState<Set<string>>(new Set());
   const [isSingleColumn, setIsSingleColumn] = useState(true);
+  const [editingNote, setEditingNote] = useState<{
+    id: string;
+    url: string;
+    title: string;
+    description: string;
+    groupName: string | null;
+  } | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchUrls = async () => {
@@ -285,10 +293,10 @@ export default function UrlForm() {
       const response = await fetch('/api/notes/archive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           ids: selectedIds,
           type: 'url',
-          isBulk: true 
+          isBulk: true
         }),
       });
 
@@ -304,6 +312,42 @@ export default function UrlForm() {
       }
     } catch (error) {
       toast.error("Failed to archive selected URLs");
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editingNote) return;
+
+    try {
+      const response = await fetch(`/api/notes/edit`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingNote.id,
+          title: editingNote.title,
+          url: editingNote.url,
+          description: editingNote.description,
+          groupName: editingNote.groupName,
+          type: 'url'
+        }),
+      });
+
+      if (response.ok) {
+        // Update the URL in state
+        setUrls(prev => prev.map(note => 
+          note.id === editingNote.id 
+            ? { ...note, title: editingNote.title, url: editingNote.url, description: editingNote.description, groupName: editingNote.groupName }
+            : note
+        ));
+        setEditDialogOpen(false);
+        setEditingNote(null);
+        toast.success("URL updated successfully");
+      } else {
+        const error = await response.json();
+        toast.error(error.message || "Error updating URL");
+      }
+    } catch (error) {
+      toast.error("Failed to update URL");
     }
   };
 
@@ -354,7 +398,7 @@ export default function UrlForm() {
       {/* Dialog for adding new URL */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-6 bg-[#FFCC00] text-black hover:bg-[#E6B800] md:w-auto w-12 h-12 p-0 fixed bottom-6 right-6 z-50 md:static">
+          <Button className="mb-2 bg-[#FFCC00] text-black hover:bg-[#E6B800] md:w-auto w-8 h-8 p-0 fixed bottom-6 right-6 z-50 md:static">
             <span className="md:inline hidden">Add New URL</span>
             <Plus className="md:hidden inline" size={24} />
           </Button>
@@ -434,17 +478,15 @@ export default function UrlForm() {
         )}
       </div>
 
-      <div className={`grid gap-4 ${
-        isSingleColumn 
-          ? 'grid-cols-1' 
+      <div className={`grid gap-4 ${isSingleColumn
+          ? 'grid-cols-1'
           : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
-      }`}>
+        }`}>
         {currentItems.map((note) => (
-          <Card 
-            key={note.id} 
-            className={`p-4 bg-[#303134] border-gray-700 shadow-md cursor-pointer transition-all ${
-              selectedNotes.has(note.id) ? 'ring-2 ring-[#FFCC00]' : ''
-            }`}
+          <Card
+            key={note.id}
+            className={`p-4 bg-[#303134] border-gray-700 shadow-md cursor-pointer transition-all ${selectedNotes.has(note.id) ? 'ring-2 ring-[#FFCC00]' : ''
+              }`}
             onClick={(e) => handleCardClick(note.id, e)}
           >
             <h3 className="font-semibold text-lg text-[#FFCC00] truncate">{note.title}</h3>
@@ -460,9 +502,28 @@ export default function UrlForm() {
             >
               {note.url}
             </a>
-            
+
             {/* Desktop Action Buttons */}
             <div className="hidden md:flex flex-wrap justify-end gap-2 mt-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-purple-400 hover:bg-[#404144]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingNote({
+                    id: note.id,
+                    url: note.url,
+                    title: note.title,
+                    description: note.description,
+                    groupName: note.groupName
+                  });
+                  setEditDialogOpen(true);
+                }}
+              >
+                <Edit2 size={16} className="mr-1" />
+                Edit
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -523,6 +584,26 @@ export default function UrlForm() {
             <Button
               variant="ghost"
               size="icon"
+              className="text-purple-400 bg-[#303134]"
+              onClick={() => {
+                const selectedNote = currentItems.find(n => selectedNotes.has(n.id));
+                if (selectedNote) {
+                  setEditingNote({
+                    id: selectedNote.id,
+                    url: selectedNote.url,
+                    title: selectedNote.title,
+                    description: selectedNote.description,
+                    groupName: selectedNote.groupName
+                  });
+                  setEditDialogOpen(true);
+                }
+              }}
+            >
+              <Edit2 size={20} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className="text-[#FFCC00] bg-[#303134]"
               onClick={() => {
                 const selectedNote = currentItems.find(n => selectedNotes.has(n.id));
@@ -563,6 +644,58 @@ export default function UrlForm() {
           </>
         )}
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="bg-[#303134] text-white md:max-w-2xl md:h-auto h-[100dvh] w-[100dvw] max-w-none rounded-none md:rounded-lg p-0 md:p-6">
+          <DialogHeader className="flex flex-row justify-between items-center p-4 border-b border-gray-700">
+            <DialogTitle>Edit URL</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 h-full overflow-y-auto">
+            <Input
+              className="mb-4 bg-[#202124]"
+              placeholder="Title"
+              value={editingNote?.title || ''}
+              onChange={(e) => setEditingNote(prev => prev ? { ...prev, title: e.target.value } : null)}
+              required
+            />
+            <Input
+              className="mb-4 bg-[#202124]"
+              type="url"
+              placeholder="Enter URL"
+              value={editingNote?.url || ''}
+              onChange={(e) => setEditingNote(prev => prev ? { ...prev, url: e.target.value } : null)}
+              required
+            />
+            <Textarea
+              className="mb-4 bg-[#202124]"
+              placeholder="Description"
+              value={editingNote?.description || ''}
+              onChange={(e) => setEditingNote(prev => prev ? { ...prev, description: e.target.value } : null)}
+            />
+            <div className="mb-4">
+              <Input
+                className="mb-2 bg-[#202124]"
+                placeholder="Group (e.g., Tampa FL)"
+                value={editingNote?.groupName || ''}
+                onChange={(e) => setEditingNote(prev => prev ? { ...prev, groupName: e.target.value } : null)}
+                list="edit-groups-list"
+              />
+              <datalist id="edit-groups-list">
+                {filteredGroups.map((group) => (
+                  <option key={group.id} value={group.name} />
+                ))}
+              </datalist>
+            </div>
+            <Button
+              onClick={handleEdit}
+              className="bg-[#FFCC00] text-black hover:bg-[#E6B800] w-full"
+            >
+              Update URL
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Empty state */}
       {currentItems.length === 0 && (
