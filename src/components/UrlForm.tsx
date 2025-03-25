@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import { Menu, X, Archive, Trash, Copy, Share2,StickyNote, LayoutList, LayoutGrid, Plus, Edit2 } from "lucide-react"
+import { Menu, X, Archive, Trash, Copy, Share2, StickyNote, LayoutList, LayoutGrid, Plus, Edit2 } from "lucide-react"
 
 export default function UrlForm() {
   const [url, setUrl] = useState("");
@@ -486,9 +486,9 @@ export default function UrlForm() {
               variant="ghost"
               size="sm"
               className="text-yellow-400 hover:bg-[#404144]"
-              onClick={handleBulkArchive}
+
             >
-              <StickyNote  size={16} className="mr-1" />
+              <StickyNote size={16} className="mr-1" />
               Selected ({selectedNotes.size})
             </Button>
           </div>
